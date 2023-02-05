@@ -1,23 +1,24 @@
 %% USER CONFIG
 
-conf.port = "/dev/ttyACM0"; % used to connect to spectrometer (serialportlist)
+% set this value to the port used for the spectrometer
+% type "serialportlist" in matlab to get all currently used ports
+conf.port = "/dev/ttyACM0"; 
 conf.command = "all"; % Options: "XYZ", "Yxy", "Yuv", "spectral", "all"
-conf.values = 0:1:255;
-conf.values = cat(3, zeros(1,256),zeros(1,256), 0:1:255);
-% conf.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
-% conf.values = ["RED", "GREEN", "BLUE"];
-conf.values = get_black_to_white_test_values();
+conf.file_name = "my_measurement"; % appended to filename with date
+conf.output_dir = "./out/auto_measure/";
 
+% show the values as an fullscreen image for direct measurements
+conf.show_images = false; 
+conf.width = 1920; % only used in combination with "show_images"
+conf.height = 1080; % only used in combination with "show_images"
 
-conf.show_images = false; % show the values as an fullscreen image
-conf.width = 1920;
-conf.height = 1080;
-conf.file_name = "measurement_pc_response_curve_grey"; % appended to filename
-conf.output_dir = "../measurements/auto_measure/";
+addpath("./src/");
+
+% generate RGB values for the measurement
+values = get_values("primary-borders", 8); % primary-borders, borders, mesh, grey
 
 %% SETUP
 
-addpath("../utils/")
 
 if not(isfolder(conf.output_dir))
     mkdir(conf.output_dir)
@@ -26,9 +27,9 @@ end
 % establish connection to spectrometer
 clear("spectro");
 spectro = Spectrometer(conf.port);
-if ~spectro.is_connected()
-    return
-end
+%if ~spectro.is_connected()
+%    return
+%end
 
 %% MEASUREMENT
 
@@ -36,7 +37,7 @@ if conf.show_images
     % fullscreen figure
     fig = figure('Name', 'TEST', 'MenuBar', 'none', ...
         'WindowState', 'fullscreen', 'ToolBar', 'none');
-    img_txt = imread('../res/user_info.png');
+    img_txt = imread('./res/user_info.png');
     img_txt = im2double(img_txt .* 255);
     img = pad_image_to_size(img_txt, conf.height, conf.width, 1);
     set(gca, 'Position', [0 0 1 1]);
@@ -46,27 +47,22 @@ end
 
 clear("measurements")
 
-disp(3);
-pause(1);
-disp(2);
-pause(1);
-disp(1);
-pause(1);
-disp(0);
+countdown(3);
+
 tic
-for i = 1:length(conf.values)
+for i = 1:length(values)
     
     if conf.show_images
-        img = repmat(conf.values(:,i,:) ./ 255, conf.height, conf.width);
+        img = repmat(values(:,i,:) ./ 255, height, conf.width);
         imshow(img);
         try
-            fprintf("\nStarting measurement (" + string(conf.values(:,i,:)) + ")\n");
+            fprintf("\nStarting measurement (" + string(values(:,i,:)) + ")\n");
         catch exception % workaround pls fix
             fprintf("\nStarting measurement (" + i +")\n");
         end
     else
         try
-            fprintf("\nStart next measurement (" + string(conf.values(:,i,:)) + ")?\n");
+            fprintf("\nStart next measurement (" + string(values(:,i,:)) + ")?\n");
         catch exception
             fprintf("\nStarting measurement (" + i +")\n");
         end
@@ -99,13 +95,10 @@ clear("spectro");
 
 %% HELPER FUNCTIONS
 
-function values = get_black_to_white_test_values()
-values = NaN(1,0,3);
-for i=0:255/16:255; values = [values, cat(3,i,0,0)]; end
-for i=0:255/16:255; values = [values, cat(3,1,i,i)]; end
-for i=0:255/16:255; values = [values, cat(3,0,i,0)]; end
-for i=0:255/16:255; values = [values, cat(3,i,1,i)]; end
-for i=0:255/16:255; values = [values, cat(3,0,0,i)]; end
-for i=0:255/16:255; values = [values, cat(3,i,i,1)]; end
-for i=0:255/16:255; values = [values, cat(3,i,i,i)]; end
+function countdown(seconds)
+for i = seconds:-1:1
+    disp(i);
+    pause(1);
+end
+disp(0);
 end

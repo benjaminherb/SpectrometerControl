@@ -9,7 +9,7 @@ classdef Measurement
     end
     
     methods
-        function obj = Measurement(s, ref_lum)
+        function obj = Measurement(s)
             % allow  for the .empty() function
             if nargin == 0
                 return
@@ -24,11 +24,6 @@ classdef Measurement
             obj.u = s.Yuv.u;
             obj.v = s.Yuv.v;
             obj.spd = s.spectral;
-            
-            if ~exist('ref_lum', 'var')
-                ref_lum = 100;
-            end
-            obj.ref_lum = ref_lum;
             
         end
         
