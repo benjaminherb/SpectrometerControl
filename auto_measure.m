@@ -19,13 +19,13 @@ addpath("./src/"); % load helper functions / classes
 % and show test images, which will be measured automatically. get_values
 % can be used to generate typical patterns or specify a n*3 double array
 % values = get_values("borders", 8); % grey, primary-borders, borders, mesh
-% values = [[0.3,0.5,0.1];[0,1,1];[1,0.2,0.8]];
-% values = 0:0.2:1;
+% values = [[0.3,0.5,0.1];[0,1,1];[1,0.2,0.8];[1,0.2,0.8]];
+values = 0:0.2:1;
 
 % as an alternative you can set "show_images" to false and use this script to
 % go through a set of measurements by pressing enter to start the next one
 % specified names which will be shown and saved with the measurements
-values = ["Paprika_LED_Wall", "Paprika_Orbiter", "Paprika_Daylight"];
+% values = ["Paprika_LED_Wall", "Paprika_Orbiter", "Paprika_Daylight"];
 
 
 %% SETUP
@@ -67,13 +67,21 @@ if conf.show_images
     set(gca, 'Position', [0 0 1 1]);
     imshow(img);
     pause;
+    countdown(3);
+    tic;
+else
+    disp("Measuring without showing the images...");
 end
 
-%countdown(3);
-
 clear("measurements")
-tic
-for i = 1:length(values)
+
+% accomedate accommodate 1:n greyscale and n:3 rgb values
+count = size(values,1);
+if size(values,1) == 1
+    count = size(values, 2);
+end
+
+for i = 1:count
     
     if conf.show_images
         
@@ -84,7 +92,7 @@ for i = 1:length(values)
         end
         
         if ismatrix(values) && size(values, 1) == 1 % grey scale values
-            color_value = cat(3, values(i));
+            color_value = [values(i), values(i), values(i)];
         elseif ismatrix(values) && size(values, 2) == 3
             color_value = values(i,:);
         elseif ndims(values) == 3 && all(size(values, [2,3]) == [1,3])
@@ -97,7 +105,7 @@ for i = 1:length(values)
         
         img = repmat(reshape(color_value, [1,1,3]), conf.height, conf.width);
         imshow(img);
-        fprintf("Measuring (" + num2str(values(i,:), '%.4f ') + ")\n");
+        fprintf("Measuring (" + num2str(color_value, '%.4f ') + ")\n");
     else
         if class(values(i)) == string
             fprintf("Measuring (" + i +") - Press enter to measure...\n");
@@ -107,29 +115,28 @@ for i = 1:length(values)
         pause;
     end
     
-    %current_measurement = spectro.measure(conf.command);
-    %current_measurement.measurement = conf.values(:,i,:);
-    %measurements(i) = current_measurement;
-    
-    while toc - (i*(24*0.02*5)) < 0
-        pause(0.01);
-    end
+    current_measurement = spectro.measure(conf.command);
+    current_measurement.measurement = values(:,i,:);
+    measurements(i) = current_measurement;
+
 end
 
 if conf.show_images
     close(fig);
+    disp("Time elapsed: " + toc);
 end
 
+clear("i", "fig", "current_measurement", "color_value", "count");
+
 %% END
-output_file = fopen( ...
-    conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') + "_" ...
-    + conf.file_name + ".json", 'w');
-
-
+output_file_name = conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') ...
+    + "_" + conf.file_name + ".json";
+output_file = fopen(output_file_name, 'w');
 fprintf(output_file, jsonencode(measurements, 'PrettyPrint', true));
+disp("Saved measurements to '" + output_file_name);
 
-% spectro.quit_remote_mode();
-clear("spectro");
+spectro.quit_remote_mode();
+clear("spectro", "output_file_name", "output_file");
 
 %% HELPER FUNCTIONS
 
@@ -139,10 +146,4 @@ for i = seconds:-1:1
     pause(1);
 end
 disp(0);
-end
-
-function image_from_color(color)
-
-color = reshape(color, [1, 1, 3]);
-
 end

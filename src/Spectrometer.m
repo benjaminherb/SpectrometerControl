@@ -53,7 +53,8 @@ classdef Spectrometer
         end
         
         function quit_remote_mode(obj)
-            obj.command("Q");
+            write(obj.con, 'Q',"uint8");
+            write(obj.con, char(13),"uint8"); % = [CR] ("newline") to end the command
         end
         
         function b = is_connected(obj)
