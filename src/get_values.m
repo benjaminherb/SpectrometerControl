@@ -1,5 +1,6 @@
 function values = get_values(type, steps)
-% returns R,G,B values
+% returns R,G,B values in a n*3 matrix
+% types: borders, primary-borders, mesh, grey
 
 i = 1;
 for r = 0:1/steps:1

@@ -1,4 +1,6 @@
 %% USER CONFIG
+% This script allows setting up automatic measurements with the option to 
+% display predefined values directly from matlab
 
 % set this value to the port used for the spectrometer
 % type "serialportlist" in matlab to get all currently used ports
@@ -93,12 +95,12 @@ for i = 1:count
         
         if ismatrix(values) && size(values, 1) == 1 % grey scale values
             color_value = [values(i), values(i), values(i)];
-        elseif ismatrix(values) && size(values, 2) == 3
+        elseif ismatrix(values) && size(values, 2) == 3 % n*3 color values
             color_value = values(i,:);
-        elseif ndims(values) == 3 && all(size(values, [2,3]) == [1,3])
+        elseif ndims(values) == 3 && all(size(values, [2,3]) == [1,3]) % n*1*3 color values
             color_value = values(i,1,:);
         else
-            disp("Please specify colors either as n*m*3 or n*3");
+            disp("Please specify colors either as greycale values, n*m*3 or n*3");
             close(fig);
             return
         end
@@ -117,8 +119,7 @@ for i = 1:count
     
     current_measurement = spectro.measure(conf.command);
     current_measurement.measurement = values(:,i,:);
-    measurements(i) = current_measurement;
-
+    measurements(i) = current_measurement; %#ok<SAGROW>
 end
 
 if conf.show_images
@@ -129,6 +130,7 @@ end
 clear("i", "fig", "current_measurement", "color_value", "count");
 
 %% END
+
 output_file_name = conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') ...
     + "_" + conf.file_name + ".json";
 output_file = fopen(output_file_name, 'w');

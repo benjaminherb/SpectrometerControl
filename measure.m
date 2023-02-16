@@ -1,4 +1,6 @@
 %% USER CONFIG
+% This script allows for manual measurements with the option to 
+% name each measurement. The output is saved as a json file.
 
 % set this value to the port used for the spectrometer
 % type "serialportlist" in matlab to get all currently used ports
@@ -8,6 +10,7 @@ conf.file_name = "my_measurement"; % appended to filename with time/date
 conf.output_dir = "./out/";  % directory the measurements will get saved to
 
 %% SETUP
+
 addpath("./src/"); % load helper functions / classes
 
 % create output folder if it does not exist yet
@@ -28,6 +31,7 @@ clear("measurements")
 
 keep_measuring = true;
 measurement_counter = 0;
+
 while keep_measuring
     measurement_counter = measurement_counter + 1;
     
@@ -42,14 +46,14 @@ while keep_measuring
     
     current_measurement = spectro.measure(conf.command);
     current_measurement.measurement = name;
-    measurements(measurement_counter) = current_measurement;
+    measurements(measurement_counter) = current_measurement; %#ok<SAGROW>
     
     fprintf( "Press enter to continue, type 'REDO' to redo the previous measurement or " ...
         + "'SAVE' to stop measuring and save to file.\n");
     user_input = input('Input: ', 's');
     if user_input == "REDO" || user_input == "redo"
         disp('Overwriting previous measurement!')
-        measurement_counter = measurement_counter - 1;
+        measurement_counter = measurement_counter - 1; % overwrite previous measurement
     elseif user_input == "SAVE" || user_input == "save"
         disp('Saving '+ string(measurement_counter) + ' measurements to file!')
         keep_measuring = false;
@@ -59,6 +63,7 @@ end
 clear("current_measurement", "counter", "keep_measuring");
 
 %% END
+
 output_file_name = conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') ...
     + "_" + conf.file_name + ".json";
 output_file = fopen(output_file_name, 'w');
