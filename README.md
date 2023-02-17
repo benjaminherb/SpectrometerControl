@@ -6,4 +6,4 @@ Use measure.m for a simple way to get measurements from the spectrometer and sav
 
 Alternatively the Spectrometer.m class can be used to implement in your own scripts. 
 
-For more information: [Dokuwiki](https://vfx-web.hdm-stuttgart.de/dokuwiki/)
+For more information: [Dokuwiki](https://vfx-web.hdm-stuttgart.de/dokuwiki/doku.php?id=led:vermessen)
